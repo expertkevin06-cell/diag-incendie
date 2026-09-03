@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Générateur d'icônes - Diag incendie by Kevin</title>
+<style>body{font-family:sans-serif;background:#f5f5f5;padding:2rem;text-align:center}button{padding:1rem 2rem;background:#d32f2f;color:#fff;border:none;border-radius:8px;font-size:1.1rem;cursor:pointer}#status{margin-top:1rem}img{margin:8px;border-radius:12px}</style>
+</head>
+<body>
+<h1>🔥 Générateur d'icônes PNG</h1>
+<p>Cliquez : les 8 icônes PNG (72→512) seront téléchargées automatiquement.<br>Placez-les ensuite dans le dossier <code>images/</code> du projet.</p>
+<button onclick="generateAll()">⬇️ TOUT TÉLÉCHARGER</button>
+<div id="status"></div>
+<div id="previews"></div>
+<script>
+const SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='b' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#a32638'/><stop offset='1' stop-color='#6d0f1d'/></linearGradient><linearGradient id='f' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#ffb300'/><stop offset='1' stop-color='#f4511e'/></linearGradient></defs><rect width='512' height='512' rx='110' fill='url(#b)'/><path fill='url(#f)' d='M256 72c12 68 84 98 92 188 4 60-28 112-92 136-64-24-96-76-92-136 4-44 32-72 50-108 6 24 22 36 24 56 14-40 8-92 18-136z'/><path fill='#801425' d='M256 240c20 28 36 48 36 76 0 28-16 48-36 56-20-8-36-28-36-56 0-28 16-48 36-76z'/><circle cx='308' cy='308' r='74' fill='none' stroke='#fff' stroke-width='30'/><line x1='360' y1='360' x2='428' y2='428' stroke='#fff' stroke-width='40' stroke-linecap='round'/></svg>`;
+const SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
+
+async function generateAll() {
+    const status = document.getElementById('status');
+    const blob = new Blob([SVG], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+
+    for (const size of SIZES) {
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, size, size);
+        const pngBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(pngBlob);
+        a.download = `icon-${size}x${size}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        const prev = document.createElement('img');
+        prev.src = a.href; prev.width = Math.min(size, 96);
+        document.getElementById('previews').appendChild(prev);
+        status.textContent = `✅ icon-${size}x${size}.png généré`;
+        await new Promise(r => setTimeout(r, 400));
+    }
+    status.textContent = '✅ Les 8 icônes sont téléchargées ! Placez-les dans images/';
+}
+</script>
+</body>
+</html>
