@@ -2,18 +2,37 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Diag incendie by Kevin - Aide au diagnostic des origines de départ incendie">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Diag incendie by Kevin - Aide au diagnostic des origines de départ incendie : bâtiment, matériel électrique, véhicule thermique et électrique">
     <meta name="theme-color" content="#d32f2f">
+
+    <!-- PWA Android / Windows -->
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='110' fill='%23801425'/><path fill='%23ff9800' d='M256 72c12 68 84 98 92 188 4 60-28 112-92 136-64-24-96-76-92-136 4-44 32-72 50-108 6 24 22 36 24 56 14-40 8-92 18-136z'/><circle cx='308' cy='308' r='74' fill='none' stroke='%23fff' stroke-width='30'/><line x1='360' y1='360' x2='428' y2='428' stroke='%23fff' stroke-width='40' stroke-linecap='round'/></svg>">
+    <link rel="icon" type="image/svg+xml" href="images/icon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192x192.png">
+
+    <!-- PWA Apple (iPhone / iPad / Mac) -->
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="DiagIncendie">
+
+    <!-- Windows (tuiles) -->
+    <meta name="msapplication-TileColor" content="#d32f2f">
+    <meta name="msapplication-TileImage" content="images/icon-144x144.png">
+
+    <!-- Icône d'onglet intégrée (data-URI, fonctionne même sans fichiers) -->
+    <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='110' fill='%23801425'/><path fill='%23ff9800' d='M256 72c12 68 84 98 92 188 4 60-28 112-92 136-64-24-96-76-92-136 4-44 32-72 50-108 6 24 22 36 24 56 14-40 8-92 18-136z'/><circle cx='308' cy='308' r='74' fill='none' stroke='%23fff' stroke-width='30'/><line x1='360' y1='360' x2='428' y2='428' stroke='%23fff' stroke-width='40' stroke-linecap='round'/></svg>">
+
     <link rel="stylesheet" href="css/styles.css">
     <title>Diag incendie by Kevin</title>
 </head>
 <body>
+    <!-- En-tête -->
     <header class="app-header">
         <div class="header-content">
-            <img src="images/icon.svg" alt="Logo" class="header-logo" onerror="this.style.display='none'">
+            <img src="images/icon.svg" alt="Logo Diag incendie" class="header-logo" onerror="this.style.display='none'">
             <div>
                 <h1>🔥 Diag incendie by Kevin</h1>
                 <p class="subtitle">Guide d'investigation des départs de feu</p>
@@ -21,6 +40,7 @@
         </div>
     </header>
 
+    <!-- Recherche locale + IA Gemini -->
     <section class="search-section">
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="Rechercher un cas, un symptôme, un matériau..." autocomplete="off">
@@ -31,10 +51,12 @@
         <div id="geminiResults" class="gemini-results"></div>
     </section>
 
+    <!-- Indicateur de connexion 4G/5G/WiFi / hors-ligne -->
     <div id="connectionStatus" class="connection-status online">
         <span class="status-icon"></span><span class="status-text">En ligne</span>
     </div>
 
+    <!-- Filtres par type de cas -->
     <nav class="main-nav">
         <button class="nav-btn active" data-filter="all">Tous</button>
         <button class="nav-btn" data-filter="building">🏢 Bâtiment</button>
@@ -44,31 +66,44 @@
         <button class="nav-btn" data-filter="equipment">🔧 Matériel</button>
     </nav>
 
-    <section><h2>Sources de départ incendie</h2>
+    <!-- Sources de départ incendie -->
+    <section>
+        <h2>Sources de départ incendie</h2>
         <div class="causes-grid" id="causesGrid"></div>
     </section>
 
-    <section><h2>🌡️ Points de fusion des métaux</h2>
+    <!-- Tableau des points de fusion -->
+    <section>
+        <h2>🌡️ Points de fusion des métaux</h2>
         <div class="table-container">
             <table id="metalTable" class="metal-table">
-                <thead><tr><th>Métal</th><th>°C</th><th>°F</th><th>Aspect après feu</th></tr></thead>
+                <thead>
+                    <tr><th>Métal</th><th>°C</th><th>°F</th><th>Aspect après feu</th></tr>
+                </thead>
                 <tbody></tbody>
             </table>
         </div>
     </section>
 
-    <section><h2>🔌 Analyse des fils électriques</h2>
+    <!-- Analyse des fils électriques -->
+    <section>
+        <h2>🔌 Analyse des fils électriques</h2>
         <div class="analysis-grid" id="wireAnalysisGrid"></div>
     </section>
 
-    <section><h2>🔩 Identification sur métal</h2>
+    <!-- Identification sur métal -->
+    <section>
+        <h2>🔩 Identification sur métal</h2>
         <div class="identification-cards" id="metalIdGrid"></div>
     </section>
 
-    <section><h2>📷 Galerie photos par cas</h2>
+    <!-- Galerie photos par cas -->
+    <section>
+        <h2>📷 Galerie photos par cas</h2>
         <div class="gallery-grid" id="photoGallery"></div>
     </section>
 
+    <!-- Base locale + photos hors-ligne -->
     <section class="storage-info">
         <div class="storage-card">
             <h3>💾 Base de données locale</h3>
@@ -84,9 +119,10 @@
 
     <footer class="app-footer">
         <p>© 2026 Diag incendie by Kevin - Application éducative</p>
-        <p class="version">v2.0.0 - Photos réelles intégrées - Base locale massive</p>
+        <p class="version">v3.0 multi-plateformes : Android / Windows / Apple - Base locale massive</p>
     </footer>
 
+    <!-- Visionneuse photos -->
     <div id="lightbox" class="lightbox hidden">
         <button class="lightbox-close" onclick="closeLightbox()">×</button>
         <img id="lightboxImg" src="" alt="Photo agrandie">
@@ -94,15 +130,26 @@
         <p id="lightboxCredit" class="lightbox-credit"></p>
     </div>
 
+    <noscript><p style="padding:2rem;text-align:center">Activez JavaScript pour utiliser Diag incendie by Kevin.</p></noscript>
+
     <script src="js/database.js"></script>
     <script src="js/gemini-search.js"></script>
     <script src="js/app.js"></script>
     <script>
+        // Enregistrement du Service Worker (hors-ligne total)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js')
-                    .then(r => console.log('SW enregistré:', r.scope))
-                    .catch(e => console.error('SW erreur:', e));
+                    .then(r => console.log('✅ SW enregistré:', r.scope))
+                    .catch(e => console.error('❌ SW erreur:', e));
+            });
+        }
+        // Réception d'un contenu partagé (share_target du manifest)
+        const params = new URLSearchParams(location.search);
+        if (params.get('q')) {
+            window.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('searchInput').value = params.get('q');
+                document.getElementById('searchBtn').click();
             });
         }
     </script>
