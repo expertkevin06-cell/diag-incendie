@@ -2,47 +2,95 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Générateur d'icônes - Diag incendie by Kevin</title>
-<style>body{font-family:sans-serif;background:#f5f5f5;padding:2rem;text-align:center}button{padding:1rem 2rem;background:#d32f2f;color:#fff;border:none;border-radius:8px;font-size:1.1rem;cursor:pointer}#status{margin-top:1rem}img{margin:8px;border-radius:12px}</style>
+<title>Générateur d'icônes multi-plateformes - Diag incendie by Kevin</title>
+<style>
+  body{font-family:'Segoe UI',sans-serif;background:#f5f5f5;padding:2rem;max-width:950px;margin:auto}
+  h1{color:#d32f2f}
+  .step{background:#fff;border-left:5px solid #d32f2f;padding:1rem 1.2rem;margin:1rem 0;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  button{padding:1rem 2rem;background:#d32f2f;color:#fff;border:none;border-radius:8px;font-size:1.1rem;cursor:pointer;margin:1rem 0}
+  button:disabled{background:#999}
+  #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1rem;margin-top:1rem}
+  .card{background:#fff;border-radius:10px;padding:.8rem;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.1);font-size:.8rem}
+  .card img{border-radius:12px}
+  .card a{display:inline-block;margin-top:.4rem;color:#d32f2f;font-weight:600}
+  #status{font-weight:700;color:#2e7d32;margin:1rem 0}
+  code{background:#eee;padding:2px 6px;border-radius:4px}
+  .drop{border:3px dashed #d32f2f;border-radius:10px;padding:1rem;text-align:center;background:#fff;margin:1rem 0;cursor:pointer;display:block}
+  .plat{display:inline-block;background:#d32f2f;color:#fff;border-radius:12px;padding:.2rem .7rem;font-size:.75rem;margin:.2rem}
+</style>
 </head>
 <body>
-<h1>🔥 Générateur d'icônes PNG</h1>
-<p>Cliquez : les 8 icônes PNG (72→512) seront téléchargées automatiquement.<br>Placez-les ensuite dans le dossier <code>images/</code> du projet.</p>
-<button onclick="generateAll()">⬇️ TOUT TÉLÉCHARGER</button>
+<h1>🔥 Générateur d'icônes — Diag incendie by Kevin</h1>
+<p><span class="plat">🤖 Android</span><span class="plat">🪟 Windows</span><span class="plat">🍎 iPhone/iPad/Mac</span> 15 tailles générées automatiquement.</p>
+
+<div class="step"><strong>Étape 1 :</strong> (Facultatif) Cliquez sur la zone pointillée pour placer VOTRE image. Sinon l'icône flamme+loupe intégrée sera utilisée.</div>
+<div class="step"><strong>Étape 2 :</strong> Cliquez sur le bouton rouge. Si le navigateur demande « Autoriser plusieurs téléchargements » → <strong>AUTORISER</strong>.</div>
+<div class="step"><strong>Étape 3 :</strong> Double-cliquez sur <code>deplacer_icones.bat</code> (Windows) ou <code>deplacer_icones.command</code> (Mac) placé à la racine : tout est rangé dans <code>images/</code>.</div>
+
+<label class="drop" for="file">📁 Placer VOTRE image ici (optionnel)<input type="file" id="file" accept="image/*" hidden></label>
+<img id="preview" style="display:none;width:96px;border-radius:12px">
+
+<button id="go">⬇️ GÉNÉRER LES 15 ICÔNES (Android + Windows + Apple)</button>
 <div id="status"></div>
-<div id="previews"></div>
+<div id="grid"></div>
+
 <script>
 const SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='b' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#a32638'/><stop offset='1' stop-color='#6d0f1d'/></linearGradient><linearGradient id='f' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#ffb300'/><stop offset='1' stop-color='#f4511e'/></linearGradient></defs><rect width='512' height='512' rx='110' fill='url(#b)'/><path fill='url(#f)' d='M256 72c12 68 84 98 92 188 4 60-28 112-92 136-64-24-96-76-92-136 4-44 32-72 50-108 6 24 22 36 24 56 14-40 8-92 18-136z'/><path fill='#801425' d='M256 240c20 28 36 48 36 76 0 28-16 48-36 56-20-8-36-28-36-56 0-28 16-48 36-76z'/><circle cx='308' cy='308' r='74' fill='none' stroke='#fff' stroke-width='30'/><line x1='360' y1='360' x2='428' y2='428' stroke='#fff' stroke-width='40' stroke-linecap='round'/></svg>`;
-const SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
+// Android: 72→512 | Windows: 44,150,310 | Apple: 120,152,167,180,1024
+const SIZES = [44, 72, 96, 120, 128, 144, 150, 152, 167, 180, 192, 310, 384, 512, 1024];
+let customImg = null;
 
-async function generateAll() {
+document.getElementById('file').addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    customImg = new Image();
+    customImg.src = URL.createObjectURL(f);
+    customImg.onload = () => {
+        const p = document.getElementById('preview');
+        p.src = customImg.src; p.style.display = 'inline-block';
+        document.getElementById('status').textContent = '✅ Votre image est prête ! Cliquez sur le bouton rouge.';
+    };
+});
+
+document.getElementById('go').addEventListener('click', async () => {
+    const btn = document.getElementById('go'); btn.disabled = true;
     const status = document.getElementById('status');
-    const blob = new Blob([SVG], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+    const grid = document.getElementById('grid'); grid.innerHTML = '';
 
-    for (const size of SIZES) {
-        const canvas = document.createElement('canvas');
-        canvas.width = size; canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, size, size);
-        const pngBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    let img;
+    if (customImg) { img = customImg; }
+    else {
+        img = new Image();
+        const blob = new Blob([SVG], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+    }
+
+    let i = 0;
+    for (const s of SIZES) {
+        const c = document.createElement('canvas');
+        c.width = s; c.height = s;
+        const ctx = c.getContext('2d');
+        const ratio = Math.max(s / img.width, s / img.height);
+        const w = img.width * ratio, h = img.height * ratio;
+        ctx.drawImage(img, (s - w) / 2, (s - h) / 2, w, h);
+
+        const png = await new Promise(r => c.toBlob(r, 'image/png'));
+        const u = URL.createObjectURL(png);
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(pngBlob);
-        a.download = `icon-${size}x${size}.png`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        a.href = u; a.download = `icon-${s}x${s}.png`;
+        document.body.appendChild(a); a.click(); a.remove();
 
-        const prev = document.createElement('img');
-        prev.src = a.href; prev.width = Math.min(size, 96);
-        document.getElementById('previews').appendChild(prev);
-        status.textContent = `✅ icon-${size}x${size}.png généré`;
+        const card = document.createElement('div'); card.className = 'card';
+        card.innerHTML = `<img src="${u}" width="${Math.min(s, 80)}"><br>icon-${s}x${s}.png<br><a href="${u}" download="icon-${s}x${s}.png">Re-télécharger</a>`;
+        grid.appendChild(card);
+
+        i++;
+        status.textContent = `✅ ${i}/15 icônes téléchargées...`;
         await new Promise(r => setTimeout(r, 400));
     }
-    status.textContent = '✅ Les 8 icônes sont téléchargées ! Placez-les dans images/';
-}
+    status.textContent = '✅ TERMINÉ ! 15 icônes dans Téléchargements → lancez le script de rangement.';
+});
 </script>
 </body>
 </html>
