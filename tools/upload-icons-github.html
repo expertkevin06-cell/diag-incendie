@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Envoi des icônes sur GitHub - Diag incendie by Kevin</title>
+<style>
+  body{font-family:'Segoe UI',sans-serif;background:#f5f5f5;padding:1.5rem;max-width:700px;margin:auto}
+  h1{color:#d32f2f;font-size:1.4rem}
+  .step{background:#fff;border-left:5px solid #d32f2f;padding:.8rem 1rem;margin:1rem 0;border-radius:8px}
+  input{width:100%;padding:.7rem;margin:.3rem 0;border:2px solid #ddd;border-radius:8px;font-size:1rem;box-sizing:border-box}
+  button{width:100%;padding:1rem;margin:.5rem 0;border:none;border-radius:8px;font-size:1.05rem;font-weight:700;color:#fff;cursor:pointer}
+  #gen{background:#d32f2f}#send{background:#2e7d32}button:disabled{background:#999}
+  #status{font-weight:700;margin:1rem 0;color:#2e7d32}
+  #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:.6rem}
+  .card{background:#fff;border-radius:8px;padding:.5rem;text-align:center;font-size:.65rem}
+  a{color:#d32f2f}
+</style>
+</head>
+<body>
+<h1>📤 Envoi des icônes sur GitHub</h1>
+<div class="step"><strong>1.</strong> Créez un token : GitHub → votre profil → <strong>Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token</strong>. Choisissez « Only select repositories » → <code>diag-incendie</code> → Permissions → <strong>Contents : Read and write</strong> → Generate. Copiez le token (<code>github_pat_...</code>).</div>
+<div class="step"><strong>2.</strong> Collez le token ci-dessous, cliquez sur les 2 boutons. C'est tout !</div>
+
+<input id="user" value="expertkevin06-cell" placeholder="Utilisateur GitHub">
+<input id="repo" value="diag-incendie" placeholder="Nom du dépôt">
+<input id="token" type="password" placeholder="Collez votre token GitHub ici">
+<button id="gen">1️⃣ GÉNÉRER LES 16 ICÔNES</button>
+<button id="send" disabled>2️⃣ ENVOYER SUR GITHUB</button>
+<div id="status"></div>
+<div id="grid"></div>
+
+<script>
+const SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'><defs><linearGradient id='b' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#a32638'/><stop offset='1' stop-color='#6d0f1d'/></linearGradient><linearGradient id='f' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#ffb300'/><stop offset='1' stop-color='#f4511e'/></linearGradient></defs><rect width='512' height='512' rx='110' fill='url(#b)'/><path fill='url(#f)' d='M256 72c12 68 84 98 92 188 4 60-28 112-92 136-64-24-96-76-92-136 4-44 32-72 50-108 6 24 22 36 24 56 14-40 8-92 18-136z'/><path fill='#801425' d='M256 240c20 28 36 48 36 76 0 28-16 48-36 56-20-8-36-28-36-56 0-28 16-48 36-76z'/><circle cx='308' cy='308' r='74' fill='none' stroke='#fff' stroke-width='30'/><line x1='360' y1='360' x2='428' y2='428' stroke='#fff' stroke-width='40' stroke-linecap='round'/></svg>`;
+const SIZES = [44,72,96,120,128,144,150,152,167,180,192,310,384,512,1024];
+let icons = [];
+
+document.getElementById('gen').addEventListener('click', async () => {
+    const status = document.getElementById('status');
+    status.textContent = '⏳ Génération en cours...';
+    const img = new Image();
+    const blob = new Blob([SVG], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+
+    icons = [];
+    for (const s of SIZES) {
+        const c = document.createElement('canvas');
+        c.width = s; c.height = s;
+        c.getContext('2d').drawImage(img, 0, 0, s, s);
+        icons.push({ name: `icon-${s}x${s}.png`, b64: c.toDataURL('image/png').split(',')[1] });
+    }
+    const a = icons.find(i => i.name === 'icon-180x180.png');
+    icons.push({ name: 'apple-touch-icon.png', b64: a.b64 });
+
+    document.getElementById('grid').innerHTML = icons.map(i =>
+        `<div class="card"><img src="data:image/png;base64,${i.b64}" width="56"><br>${i.name}</div>`).join('');
+    status.textContent = '✅ 16 icônes prêtes ! Cliquez sur « ENVOYER SUR GITHUB ».';
+    document.getElementById('send').disabled = false;
+});
+
+document.getElementById('send').addEventListener('click', async () => {
+    const user = document.getElementById('user').value.trim();
+    const repo = document.getElementById('repo').value.trim();
+    const token = document.getElementById('token').value.trim();
+    const status = document.getElementById('status');
+    if (!token) { alert('Collez d\'abord votre token GitHub'); return; }
+
+    document.getElementById('send').disabled = true;
+    let i = 0;
+    for (const ic of icons) {
+        status.textContent = `📤 Envoi ${i + 1}/${icons.length} : ${ic.name}...`;
+        let sha;
+        try {
+            const g = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/images/${ic.name}`,
+                { headers: { Authorization: `Bearer ${token}` } });
+            if (g.ok) sha = (await g.json()).sha;
+        } catch (e) {}
+        const body = { message: `Ajout ${ic.name} (icônes PWA)`, content: ic.b64 };
+        if (sha) body.sha = sha;
+        const r = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/images/${ic.name}`, {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        if (!r.ok) {
+            const err = await r.json().catch(() => ({}));
+            status.textContent = `❌ Erreur ${r.status} sur ${ic.name} : ${err.message || 'token invalide ?'}`;
+            document.getElementById('send').disabled = false;
+            return;
+        }
+        i++;
+    }
+    status.textContent = '✅ TERMINÉ ! 16 icônes envoyées. Attendez 1 minute, puis relancez l\'analyse PWABuilder.';
+});
+</script>
+</body>
+</html>
